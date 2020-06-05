@@ -1,7 +1,7 @@
-Gjenbruksstasjoner Queue Time API
+gjenbruksstasjoner-kotid-api
 =========================
 
-Lambda function providing an API for [Gjenbruksstasjoner Queue Time Predictions](https://github.oslo.kommune.no/origo-dataplatform/gjenbruksstasjoner-queue-predictions) usings [Flask](https://flask.palletsprojects.com/) and [Flask-RESTful](https://flask-restful.readthedocs.io/en/latest/).
+Lambda function providing an API for [gjenbruksstasjoner-kotid-estimering](https://github.oslo.kommune.no/origo-dataplatform/gjenbruksstasjoner-kotid-estimering) using [Flask](https://flask.palletsprojects.com/) and [Flask-RESTful](https://flask-restful.readthedocs.io/en/latest/).
 
 
 ## Tests
@@ -15,7 +15,12 @@ For tests and linting we use [pytest](https://pypi.org/project/pytest/),
 
 ## Run
 
-`make run` to start up Flask app locally.
+`make run` to start up Flask app locally. Binds to port `5000` by default. Change port/environment:
+
+```
+export FLASK_ENV=development
+export FLASK_RUN_PORT=8080
+```
 
 
 ## Deploy
