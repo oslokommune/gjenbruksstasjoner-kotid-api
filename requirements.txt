@@ -5,12 +5,19 @@
 #    pip-compile
 #
 aniso8601==8.0.0          # via flask-restful
-click==7.1.1              # via flask
-flask-restful==0.3.8      # via flask-demo (setup.py)
-flask==1.1.2              # via flask-demo (setup.py), flask-restful
+boto3==1.13.23            # via gjenbruksstasjoner-kotid-api (setup.py)
+botocore==1.16.23         # via boto3, s3transfer
+click==7.1.2              # via flask
+docutils==0.15.2          # via botocore
+flask-restful==0.3.8      # via gjenbruksstasjoner-kotid-api (setup.py)
+flask==1.1.2              # via flask-restful, gjenbruksstasjoner-kotid-api (setup.py)
 itsdangerous==1.1.0       # via flask
-jinja2==2.11.1            # via flask
+jinja2==2.11.2            # via flask
+jmespath==0.10.0          # via boto3, botocore
 markupsafe==1.1.1         # via jinja2
-pytz==2019.3              # via flask-restful
-six==1.14.0               # via flask-restful
+python-dateutil==2.8.1    # via botocore
+pytz==2020.1              # via flask-restful
+s3transfer==0.3.3         # via boto3
+six==1.15.0               # via flask-restful, python-dateutil
+urllib3==1.25.9           # via botocore
 werkzeug==1.0.1           # via flask

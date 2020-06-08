@@ -1,5 +1,5 @@
 frameworkVersion: ">=1.64.0 <2.0.0"
-service: flask-demo
+service: gjenbruksstasjoner-kotid-api
 provider:
   name: aws
   runtime: python3.7
@@ -25,6 +25,7 @@ package:
   exclude:
     - '**/*'
   include:
+    - 'queue_estimation_api/*.py'
     - '*.py'
 
 functions:
