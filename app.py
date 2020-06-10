@@ -5,7 +5,8 @@ from flask import Flask, jsonify
 from flask_restful import Api
 from werkzeug.exceptions import HTTPException
 
-from queue_estimation_api.queues_endpoint import Queues
+from queue_predictions_api.endpoints import Station
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -14,7 +15,16 @@ logger.setLevel(logging.INFO)
 app = Flask(__name__)
 api = Api(app)
 
-api.add_resource(Queues, "/", "/<string:station_id>")
+# api.add_resource(StationList, "/")
+api.add_resource(Station, "/<string:station_id>")
+
+
+@app.after_request
+def after_request(response):
+    # Alt. https://flask-cors.readthedocs.io/en/latest/
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Methods", "GET")
+    return response
 
 
 @app.errorhandler(HTTPException)

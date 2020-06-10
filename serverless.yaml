@@ -25,7 +25,7 @@ package:
   exclude:
     - '**/*'
   include:
-    - 'queue_estimation_api/*.py'
+    - 'queue_predictions_api/*.py'
     - '*.py'
 
 functions:
