@@ -5,7 +5,7 @@ from flask import Flask, jsonify
 from flask_restful import Api
 from werkzeug.exceptions import HTTPException
 
-from queue_predictions_api.endpoints import StationResource
+from queue_predictions_api.endpoints import StationListResource, StationResource
 
 
 logger = logging.getLogger()
@@ -15,7 +15,7 @@ logger.setLevel(logging.INFO)
 app = Flask(__name__)
 api = Api(app)
 
-# api.add_resource(StationList, "/")
+api.add_resource(StationListResource, "/")
 api.add_resource(StationResource, "/<int:station_id>")
 
 

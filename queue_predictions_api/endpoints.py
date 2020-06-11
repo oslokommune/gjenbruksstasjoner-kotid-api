@@ -37,6 +37,18 @@ station_fields = {
 }
 
 
+class StationListResource(Resource):
+    @marshal_with(station_fields)
+    def get(self):
+        try:
+            config = Config()
+        except Exception as e:
+            logger.exception(e)
+            abort(500)
+
+        return config.get_all_stations()
+
+
 class StationResource(Resource):
     @marshal_with(station_fields)
     def get(self, station_id):

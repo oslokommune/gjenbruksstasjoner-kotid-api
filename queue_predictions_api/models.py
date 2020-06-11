@@ -179,7 +179,7 @@ class Config(BaseModel):
             logger.exception(e)
             raise
 
-    def all_stations(self) -> List[Station]:
+    def get_all_stations(self) -> List[Station]:
         return list(
             filter(
                 lambda s: s is not None,
