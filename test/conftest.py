@@ -1,3 +1,4 @@
+import os
 import boto3
 import pytest
 
@@ -5,7 +6,9 @@ import pytest
 from moto import mock_dynamodb2
 
 from app import app as flask_app
-from queue_predictions_api.data import predictions_table_name as table_name
+
+
+table_name = os.environ["REG_PREDICTION_TABLE_NAME"]
 
 
 def create_predictions_table(items=[], region="eu-west-1"):

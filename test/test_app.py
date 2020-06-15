@@ -13,7 +13,7 @@ class TestApp:
         # )
 
         # response = Queues().get(station_id="test-station-id")
-        response = mock_client.get("/haraldrud")
+        response = mock_client.get("/42")
         # response_data = response.get_json()
 
         assert response.status_code == 200
