@@ -33,7 +33,7 @@ test: $(BUILD_VENV)/bin/tox
 	$(BUILD_PY) -m tox -p auto -o
 
 .PHONY: run
-run: $(BUILD_VENV)/bin/flask $(BUILD_VENV)/lib/python$(PY_VERSION)/site-packages/flask_restful
+run: $(BUILD_VENV)/bin/flask $(BUILD_VENV)/lib/python$(PY_VERSION)/site-packages/flask_restful $(BUILD_VENV)/lib/python$(PY_VERSION)/site-packages/boto3
 	FLASK_APP=app.py $(BUILD_PY) -m flask run
 
 .PHONY: upgrade-deps

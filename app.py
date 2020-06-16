@@ -1,19 +1,45 @@
-# https://serverless.com/blog/flask-python-rest-api-serverless-lambda-dynamodb/
-# https://flask-restful.readthedocs.io/en/latest/quickstart.html
+import json
+import logging
+import datetime
+from flask import Flask, jsonify
+from flask_restful import Api
+from werkzeug.exceptions import HTTPException
 
-from flask import Flask
-from flask_restful import Resource, Api
+from queue_predictions_api.endpoints import StationListResource, StationResource
+
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 
 app = Flask(__name__)
 api = Api(app)
 
-
-class HelloWorld(Resource):
-    def get(self):
-        return {"hello": "world"}
+api.add_resource(StationListResource, "/")
+api.add_resource(StationResource, "/<int:station_id>")
 
 
-api.add_resource(HelloWorld, "/")
+@app.after_request
+def after_request(response):
+    # Alt. https://flask-cors.readthedocs.io/en/latest/
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Methods", "GET")
+    return response
 
-if __name__ == "__main__":
-    app.run(debug=True)
+
+@app.errorhandler(HTTPException)
+def http_error(e):
+    logger.exception(e)
+
+    # Turn default HTML errors pages into JSON
+    return jsonify({"message": str(e.description)}), e.code
+
+
+# TODO: Remove
+@app.route("/status")
+def status():
+    def default(o):
+        if isinstance(o, (datetime.date, datetime.datetime)):
+            return o.isoformat()
+
+    return json.dumps(app.config, default=default)
