@@ -1,16 +1,14 @@
-# import os
-# import json
+import os
+import json
 import boto3
 import logging
 from typing import List, Optional
 
-# from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
 from queue_predictions_api.models import Station
-from test.mockdata import test_config_data, test_prediction_data
 
-# TODO: Remove mock data
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -18,7 +16,7 @@ logger.setLevel(logging.INFO)
 
 s3 = boto3.resource("s3", region_name="eu-west-1")
 dynamodb = boto3.resource("dynamodb", region_name="eu-west-1")
-# predictions_table = dynamodb.Table(os.environ["REG_PREDICTION_TABLE_NAME"])
+predictions_table = dynamodb.Table(os.environ["REG_PREDICTION_TABLE_NAME"])
 
 
 class QueuePredictionService:
@@ -35,7 +33,7 @@ class QueuePredictionService:
 
         # Update defaults
         station_config = {
-            "station_id": station_id,
+            "station_id": int(station_id),
             "prediction_config": self.prediction_config,
         }
         station_config.update(self.stations[station_id])
@@ -47,7 +45,7 @@ class QueuePredictionService:
             return None
 
         # Update prediction data
-        station.queue_prediction = self._get_prediction_data(station_id)
+        station.queue_prediction = self._get_prediction_data(station.station_id)
 
         return station
 
@@ -61,31 +59,36 @@ class QueuePredictionService:
 
     def _get_prediction_data(self, station_id):
         try:
-            """
             return predictions_table.query(
                 KeyConditionExpression=Key("station_id").eq(station_id),
                 ScanIndexForward=False,
                 Limit=1,
             )["Items"][0]
-            """
-            return test_prediction_data.get(station_id)
         except IndexError:
-            logger.warning("No prediction data found")
+            logger.warning(f"No prediction data found for station {station_id}")
         except ClientError as e:
+            logger.error(
+                f"Could not get queue prediction data for station {station_id}"
+            )
             logger.exception(e)
 
     def _update_config(self):
+        logger.info("Reading remote configuration data")
+
         try:
-            """
             obj = s3.Object(
                 os.environ["REG_CONFIG_BUCKET"], os.environ["REG_CONFIG_IDENTIFIER"]
             )
             config = json.loads(obj.get()["Body"].read())
-            """
-            config = test_config_data
         except Exception as e:
+            logger.error("Could not read remote configuration file")
             logging.exception(e)
             return
         else:
             self.prediction_config = config.get("prediction_config", {})
             self.stations = config.get("stations", {})
+
+            if not self.prediction_config:
+                logger.warning("No global prediction configuration found")
+            if not self.stations:
+                logger.warning("No stations found in configuration")
