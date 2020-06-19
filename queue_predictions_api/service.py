@@ -7,11 +7,10 @@ from typing import List, Optional
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
-from queue_predictions_api.models import Station
+from queue_predictions_api.models import Station, PredictionConfig
 
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger = logging.getLogger("queue_predictions_api.service")
 
 
 s3 = boto3.resource("s3", region_name="eu-west-1")
@@ -25,22 +24,26 @@ class QueuePredictionService:
         self.stations = {}
         self._update_config()
 
-    def get_station(self, station_id) -> Optional[Station]:
-        if station_id not in self.stations or not self.stations[station_id].get(
-            "active", False
-        ):
+    def get_station(self, station_id: int) -> Optional[Station]:
+        station_config = self.stations.get(str(station_id))
+
+        if not station_config or not station_config.get("active", False):
             return None
 
-        # Update defaults
-        station_config = {
-            "station_id": int(station_id),
-            "prediction_config": self.prediction_config,
-        }
-        station_config.update(self.stations[station_id])
-
         try:
-            station = Station.from_dict(station_config)
+            prediction_config = self.prediction_config.copy()
+
+            if station_config.get("prediction_config"):
+                prediction_config.update(station_config["prediction_config"])
+
+            station = Station(
+                station_id=station_id,
+                prediction_config=PredictionConfig.from_dict(prediction_config),
+                pretty_name=station_config.get("pretty_name"),
+                opening_hours=station_config.get("opening_hours"),
+            )
         except Exception as e:
+            logger.error("Could not create station object from provided configuration")
             logger.exception(e)
             return None
 
@@ -53,11 +56,14 @@ class QueuePredictionService:
         return list(
             filter(
                 lambda s: s is not None,
-                [self.get_station(station_id) for station_id in self.stations.keys()],
+                [
+                    self.get_station(int(station_id))
+                    for station_id in self.stations.keys()
+                ],
             )
         )
 
-    def _get_prediction_data(self, station_id):
+    def _get_prediction_data(self, station_id: int) -> Optional[dict]:
         try:
             return predictions_table.query(
                 KeyConditionExpression=Key("station_id").eq(station_id),
@@ -82,7 +88,7 @@ class QueuePredictionService:
             config = json.loads(obj.get()["Body"].read())
         except Exception as e:
             logger.error("Could not read remote configuration file")
-            logging.exception(e)
+            logger.exception(e)
             return
         else:
             self.prediction_config = config.get("prediction_config", {})

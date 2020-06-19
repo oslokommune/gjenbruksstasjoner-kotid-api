@@ -5,7 +5,7 @@ from datetime import datetime, time
 from dataclasses import dataclass, fields
 
 
-logger = logging.getLogger()
+logger = logging.getLogger("queue_predictions_api.models")
 
 
 @dataclass
@@ -66,24 +66,19 @@ class QueuePrediction(BaseModel):
 
     @property
     def updated_at(self) -> datetime:
-        return datetime.fromtimestamp(self.timestamp)
+        dt = datetime.fromtimestamp(self.timestamp)
+        tz = timezone("Europe/Oslo")
+        return tz.localize(dt)
 
 
 @dataclass
 class Station(BaseModel):
     station_id: int
+    prediction_config: PredictionConfig
     pretty_name: str = None
     opening_hours: dict = None
-    prediction_config: PredictionConfig = None
 
     _queue_prediction: QueuePrediction = None
-
-    def __post_init__(self):
-        try:
-            self.prediction_config = PredictionConfig.from_dict(self.prediction_config)
-        except Exception as e:
-            logger.error("Error while parsing prediction config")
-            logger.exception(e)
 
     @property
     def queue_prediction(self) -> Optional[QueuePrediction]:
