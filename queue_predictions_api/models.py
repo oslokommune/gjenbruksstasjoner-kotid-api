@@ -108,7 +108,9 @@ class Station(BaseModel):
     @property
     def is_open(self) -> bool:
         if not self.opening_hours:
-            logger.warning("No opening hours config defined for requested station")
+            logger.warning(
+                f"No opening hours config defined for station {self.station_id}"
+            )
             return False
 
         now = datetime.now(pytz.timezone("Europe/Oslo"))

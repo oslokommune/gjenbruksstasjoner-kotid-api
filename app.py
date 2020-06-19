@@ -1,5 +1,3 @@
-import json
-import datetime
 import logging.config
 from flask import Flask, jsonify
 from flask_restful import Api
@@ -20,11 +18,10 @@ logging.config.dictConfig(
             "stream": {"class": "logging.StreamHandler", "formatter": "standard"}
         },
         "loggers": {
-            "werkzeug": {"level": "INFO", "handlers": ["stream"], "propagate": True},
             "queue_predictions_api": {
                 "level": "INFO",
                 "handlers": ["stream"],
-                "propagate": True,
+                "propagate": False,
             },
         },
     }
@@ -51,13 +48,3 @@ def http_error(e):
 
     # Turn default HTML errors pages into JSON
     return jsonify({"message": str(e.description)}), e.code
-
-
-# TODO: Remove
-@app.route("/status")
-def status():
-    def default(o):
-        if isinstance(o, (datetime.date, datetime.datetime)):
-            return o.isoformat()
-
-    return json.dumps(app.config, default=default)
