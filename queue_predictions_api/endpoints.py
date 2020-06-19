@@ -4,8 +4,7 @@ from flask_restful import Resource, marshal_with, abort, fields
 from queue_predictions_api.service import QueuePredictionService
 
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger = logging.getLogger("queue_predictions_api.endpoints")
 
 
 class RoundedFloat(fields.Float):
@@ -30,21 +29,21 @@ station_fields = {
     ),
 }
 
-queue_prediction_service = QueuePredictionService()
-
 
 class StationListResource(Resource):
     @marshal_with(station_fields)
     def get(self):
+        queue_prediction_service = QueuePredictionService()
         return queue_prediction_service.get_all_stations()
 
 
 class StationResource(Resource):
     @marshal_with(station_fields)
     def get(self, station_id):
+        queue_prediction_service = QueuePredictionService()
         station = queue_prediction_service.get_station(station_id)
 
         if not station:
-            abort(404)
+            abort(404, message="No station data found for provided id")
 
         return station
