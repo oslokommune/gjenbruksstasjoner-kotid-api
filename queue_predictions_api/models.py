@@ -1,5 +1,5 @@
+import pytz
 import logging
-from pytz import timezone
 from typing import Optional
 from datetime import datetime, time
 from dataclasses import dataclass, fields
@@ -66,9 +66,8 @@ class QueuePrediction(BaseModel):
 
     @property
     def updated_at(self) -> datetime:
-        dt = datetime.fromtimestamp(self.timestamp)
-        tz = timezone("Europe/Oslo")
-        return tz.localize(dt)
+        dt = datetime.fromtimestamp(self.timestamp, tz=pytz.timezone("Europe/Oslo"))
+        return dt
 
 
 @dataclass
@@ -112,7 +111,7 @@ class Station(BaseModel):
             logger.warning("No opening hours config defined for requested station")
             return False
 
-        now = datetime.now(timezone("Europe/Oslo"))
+        now = datetime.now(pytz.timezone("Europe/Oslo"))
 
         try:
             hours = self._get_hours(now)
