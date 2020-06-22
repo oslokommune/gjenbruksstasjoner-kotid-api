@@ -1,11 +1,10 @@
 import logging
 from flask_restful import Resource, marshal_with, abort, fields
 
-from queue_predictions_api.models import Config
+from queue_predictions_api.service import QueuePredictionService
 
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger = logging.getLogger("queue_predictions_api.endpoints")
 
 
 class RoundedFloat(fields.Float):
@@ -13,26 +12,20 @@ class RoundedFloat(fields.Float):
         return round(value, 3)
 
 
-class NestedField(fields.Nested):
-    def output(self, key, obj):
-        """ Do not return empty nested fields. """
-        if not obj or getattr(obj, key) is None:
-            return None
-        return super().output(key, obj)
-
-
 station_fields = {
     "station_id": fields.Integer,
-    "station_name": fields.String(attribute="pretty_name"),
+    "station_name": fields.String,
     "is_open": fields.Boolean,
-    "queue": NestedField(
+    "queue": fields.Nested(
         {
             "is_full": fields.Boolean,
             "expected_time": RoundedFloat(attribute="expected_queue_time"),
             "min_time": RoundedFloat(attribute="min_queue_time"),
             "max_time": RoundedFloat(attribute="max_queue_time"),
             "updated_at": fields.DateTime("iso8601"),
-        }
+        },
+        allow_null=True,
+        attribute="queue_prediction",
     ),
 }
 
@@ -40,27 +33,17 @@ station_fields = {
 class StationListResource(Resource):
     @marshal_with(station_fields)
     def get(self):
-        try:
-            config = Config()
-        except Exception as e:
-            logger.exception(e)
-            abort(500)
-
-        return config.get_all_stations()
+        queue_prediction_service = QueuePredictionService()
+        return queue_prediction_service.get_all_stations()
 
 
 class StationResource(Resource):
     @marshal_with(station_fields)
     def get(self, station_id):
-        try:
-            config = Config()
-        except Exception as e:
-            logger.exception(e)
-            abort(500)
-
-        station = config.get_station(station_id)
+        queue_prediction_service = QueuePredictionService()
+        station = queue_prediction_service.get_station(station_id)
 
         if not station:
-            abort(404)
+            abort(404, message="No station data found for provided id")
 
         return station

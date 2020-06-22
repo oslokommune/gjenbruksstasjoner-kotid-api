@@ -1,14 +1,11 @@
+import pytz
 import logging
-from pytz import timezone
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime, time
 from dataclasses import dataclass, fields
 
-import queue_predictions_api.data as data
 
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger = logging.getLogger("queue_predictions_api.models")
 
 
 @dataclass
@@ -36,9 +33,14 @@ class PredictionConfig(BaseModel):
 class QueuePrediction(BaseModel):
     queue_full: float
     expected_queue_time: float
-    updated_at: datetime
+    timestamp: float
 
     config: PredictionConfig
+
+    def __post_init__(self):
+        self.queue_full = float(self.queue_full)
+        self.expected_queue_time = float(self.expected_queue_time)
+        self.timestamp = float(self.timestamp)
 
     @property
     def is_uncertain_prediction(self) -> bool:
@@ -56,61 +58,62 @@ class QueuePrediction(BaseModel):
 
     @property
     def min_queue_time(self) -> float:
-        return self.expected_queue_time - (
-            self.expected_queue_time * self.config.margin_of_error
-        )
+        return self.expected_queue_time * (1 - self.config.margin_of_error)
 
     @property
     def max_queue_time(self) -> float:
         return self.expected_queue_time * (1 + self.config.margin_of_error)
 
+    @property
+    def updated_at(self) -> datetime:
+        dt = datetime.fromtimestamp(self.timestamp, tz=pytz.timezone("Europe/Oslo"))
+        return dt
+
 
 @dataclass
 class Station(BaseModel):
     station_id: int
-    pretty_name: str = None
+    prediction_config: PredictionConfig
+    station_name: str = None
     opening_hours: dict = None
-    prediction_config: dict = None
+
+    _queue_prediction: QueuePrediction = None
 
     @property
-    def queue(self) -> Optional[QueuePrediction]:
-        if not self.is_open:
+    def queue_prediction(self) -> Optional[QueuePrediction]:
+        if not self._queue_prediction or not self.is_open:
             return
 
-        try:
-            config = PredictionConfig.from_dict(self.prediction_config)
-        except Exception as e:
-            logger.error("Error while parsing prediction config")
-            logger.exception(e)
+        if self._queue_prediction.is_uncertain_prediction:
+            logger.warning(f"Prediction for station {self.station_id} is too uncertain")
             return
 
-        # Get latest prediction data
-        prediction_data = data.get_prediction_by_station_id(self.station_id)
+        return self._queue_prediction
 
+    @queue_prediction.setter
+    def queue_prediction(self, prediction_data: dict):
         if not prediction_data:
-            logger.warning("No prediction data found")
+            self._queue_prediction = None
             return
 
         try:
-            prediction = QueuePrediction.from_dict(prediction_data, config=config)
+            self._queue_prediction = QueuePrediction.from_dict(
+                prediction_data, config=self.prediction_config
+            )
         except Exception as e:
             logger.error("Error while processing prediction data")
             logger.exception(e)
-            return
-
-        if prediction.is_uncertain_prediction:
-            logger.warning("Prediction is too uncertain")
-            return
-
-        return prediction
+            self._queue_prediction = None
 
     @property
     def is_open(self) -> bool:
         if not self.opening_hours:
-            logger.warning("No opening hours config defined for requested station")
+            logger.warning(
+                f"No opening hours config defined for station {self.station_id}"
+            )
             return False
 
-        now = datetime.now(timezone("Europe/Oslo"))
+        now = datetime.now(pytz.timezone("Europe/Oslo"))
 
         try:
             hours = self._get_hours(now)
@@ -148,41 +151,3 @@ class Station(BaseModel):
             return start <= time < end
 
         return False
-
-
-@dataclass(init=False)
-class Config(BaseModel):
-    prediction_config: dict
-    stations: dict
-
-    def __init__(self):
-        config = data.get_config()
-        self.prediction_config = config["prediction_config"]
-        self.stations = config["stations"]
-
-    def get_station(self, station_id) -> Optional[Station]:
-        if station_id not in self.stations or not self.stations[station_id].get(
-            "active", False
-        ):
-            return None
-
-        # Update defaults
-        station_config = {
-            "station_id": station_id,
-            "prediction_config": self.prediction_config,
-        }
-        station_config.update(self.stations[station_id])
-
-        try:
-            return Station.from_dict(station_config)
-        except Exception as e:
-            logger.exception(e)
-            raise
-
-    def get_all_stations(self) -> List[Station]:
-        return list(
-            filter(
-                lambda s: s is not None,
-                [self.get_station(station_id) for station_id in self.stations.keys()],
-            )
-        )

@@ -1,28 +1,50 @@
 import os
+import json
 import boto3
 import pytest
-
-# import datetime
-from moto import mock_dynamodb2
+import decimal
+from moto import mock_dynamodb2, mock_s3
 
 from app import app as flask_app
 
 
+aws_region = "eu-west-1"
 table_name = os.environ["REG_PREDICTION_TABLE_NAME"]
+bucket_name = os.environ["REG_CONFIG_BUCKET"]
+config_identifier = os.environ["REG_CONFIG_IDENTIFIER"]
 
 
-def create_predictions_table(items=[], region="eu-west-1"):
-    client = boto3.client("dynamodb", region_name=region)
+def create_predictions_table(items=[]):
+    client = boto3.client("dynamodb", region_name=aws_region)
     client.create_table(
-        # TODO
+        TableName=table_name,
+        KeySchema=[
+            {"AttributeName": "station_id", "KeyType": "HASH"},
+            {"AttributeName": "timestamp", "KeyType": "RANGE"},
+        ],
+        AttributeDefinitions=[
+            {"AttributeName": "station_id", "AttributeType": "N"},
+            {"AttributeName": "timestamp", "AttributeType": "S"},
+        ],
+        ProvisionedThroughput={"ReadCapacityUnits": 1, "WriteCapacityUnits": 1},
+        GlobalSecondaryIndexes=[],
     )
 
-    table = boto3.resource("dynamodb", region_name=region).Table(table_name)
+    table = boto3.resource("dynamodb", region_name=aws_region).Table(table_name)
 
     for item in items:
-        table.put_item(Item=item)
+        table.put_item(Item=json.loads(json.dumps(item), parse_float=decimal.Decimal))
 
     return table
+
+
+def create_config_file(config):
+    s3 = boto3.resource("s3", region_name=aws_region)
+    s3object = s3.Object(bucket_name, config_identifier)
+
+    s3object.put(Body=json.dumps(config).encode())
+
+    return s3object
 
 
 @pytest.fixture
@@ -41,3 +63,11 @@ def mock_client():
 @pytest.fixture(scope="function")
 def mock_dynamodb():
     mock_dynamodb2().start()
+
+
+@pytest.fixture(scope="function")
+def mock_s3_config():
+    mock_s3().start()
+
+    client = boto3.client("s3", region_name=aws_region)
+    client.create_bucket(Bucket=bucket_name)

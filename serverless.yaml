@@ -12,7 +12,7 @@ provider:
   deploymentPrefix: deploy
   rolePermissionsBoundary: "arn:aws:iam::#{AWS::AccountId}:policy/oslokommune/oslokommune-boundary"
   iamManagedPolicies:
-    - 'arn:aws:iam::#{AWS::AccountId}:policy/lambda-boilerplate-policy'
+    - 'arn:aws:iam::#{AWS::AccountId}:policy/gjenbruksstasjoner-kotid-api-policy'
     - 'arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess'
   tags:
     GIT_REV: ${git:branch}:${git:sha1}
@@ -21,6 +21,9 @@ provider:
     GIT_REV: ${git:branch}:${git:sha1}
     STAGE: ${self:provider.stage}
     VERSION: ${self:custom.version}
+    REG_PREDICTION_TABLE_NAME: gjenbruksstasjoner-estimert-kotid
+    REG_CONFIG_BUCKET: ok-origo-dataplatform-${self:provider.stage}
+    REG_CONFIG_IDENTIFIER: teams/reg-big-data/estimering-kotid-api/config.json
 package:
   exclude:
     - '**/*'
