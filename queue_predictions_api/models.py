@@ -74,7 +74,7 @@ class QueuePrediction(BaseModel):
 class Station(BaseModel):
     station_id: int
     prediction_config: PredictionConfig
-    pretty_name: str = None
+    station_name: str = None
     opening_hours: dict = None
 
     _queue_prediction: QueuePrediction = None

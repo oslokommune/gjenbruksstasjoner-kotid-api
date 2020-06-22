@@ -7,7 +7,7 @@ test_config_data = {
     "stations": {
         41: {
             "active": True,
-            "pretty_name": "Grønmo",
+            "station_name": "Grønmo",
             "opening_hours": {
                 "default": {"open": "07:00", "closed": "21:00"},
                 "saturday": {"open": "07:00", "closed": "17:00"},
@@ -16,7 +16,7 @@ test_config_data = {
         },
         42: {
             "active": True,
-            "pretty_name": "Haraldrud gjenbruksstasjon",
+            "station_name": "Haraldrud gjenbruksstasjon",
             "opening_hours": {
                 "default": {"open": "07:00", "closed": "21:00"},
                 "saturday": {"open": "07:00", "closed": "17:00"},
@@ -35,13 +35,13 @@ test_config_data = {
         },
         43: {
             "active": False,
-            "pretty_name": "Smestad",
+            "station_name": "Smestad",
             "opening_hours": {},
             "prediction_config": {},
         },
         44: {
             "active": True,
-            "pretty_name": "Heggvin",
+            "station_name": "Heggvin",
             "opening_hours": {},
             "prediction_config": {},
         },

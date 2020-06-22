@@ -136,7 +136,7 @@ class TestStation:
             prediction_config=PredictionConfig.from_dict(
                 station_config["prediction_config"]
             ),
-            pretty_name=station_config.get("pretty_name"),
+            station_name=station_config.get("station_name"),
             opening_hours=station_config.get("opening_hours"),
         )
 
@@ -164,7 +164,7 @@ class TestStation:
             prediction_config=PredictionConfig.from_dict(
                 station_config["prediction_config"]
             ),
-            pretty_name=station_config.get("pretty_name"),
+            station_name=station_config.get("station_name"),
             opening_hours=station_config.get("opening_hours"),
         )
 

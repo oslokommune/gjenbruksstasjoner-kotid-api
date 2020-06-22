@@ -39,7 +39,7 @@ class QueuePredictionService:
             station = Station(
                 station_id=station_id,
                 prediction_config=PredictionConfig.from_dict(prediction_config),
-                pretty_name=station_config.get("pretty_name"),
+                station_name=station_config.get("station_name"),
                 opening_hours=station_config.get("opening_hours"),
             )
         except Exception as e:

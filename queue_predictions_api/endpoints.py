@@ -14,7 +14,7 @@ class RoundedFloat(fields.Float):
 
 station_fields = {
     "station_id": fields.Integer,
-    "station_name": fields.String(attribute="pretty_name"),
+    "station_name": fields.String,
     "is_open": fields.Boolean,
     "queue": fields.Nested(
         {
