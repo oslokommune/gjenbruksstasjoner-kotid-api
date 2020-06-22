@@ -23,7 +23,7 @@ class TestApp:
             if config["active"]
         ]
         for station in response_data:
-            assert list(station) == list(station_fields)
+            assert set(station) == set(station_fields)
 
     def test_get_station(self, mock_client, mock_s3_config, mock_dynamodb):
         create_config_file(test_config_data)
