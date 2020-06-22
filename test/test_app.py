@@ -1,12 +1,8 @@
-# import json
-# from freezegun import freeze_time
 from aws_xray_sdk.core import xray_recorder
 
 from test.conftest import create_config_file, create_predictions_table
 from test.mockdata import test_config_data, test_prediction_data
 from queue_predictions_api.endpoints import station_fields
-
-# from queue_predictions_api.endpoints import StationListResource
 
 
 xray_recorder.begin_segment("Test")
