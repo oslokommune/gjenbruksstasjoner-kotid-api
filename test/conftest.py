@@ -42,7 +42,7 @@ def create_config_file(config):
     s3 = boto3.resource("s3", region_name=aws_region)
     s3object = s3.Object(bucket_name, config_identifier)
 
-    s3object.put(Body=(bytes(json.dumps(config).encode("UTF-8"))))
+    s3object.put(Body=json.dumps(config).encode())
 
     return s3object
 
