@@ -1,0 +1,96 @@
+---
+swagger: "2.0"
+info:
+  description: "API for recycling station queue time estimations."
+  version: "2020-06-22T13:00:00Z"
+  title: "gjenbruksstasjoner-kotid-api"
+  contact:
+    name: "Origo Dataplatform team"
+    email: "dataplattform@oslo.kommune.no"
+host: "api.data.oslo.systems"
+basePath: "/gjenbruksstasjoner-kotid"
+schemes:
+- "https"
+paths:
+  /:
+    get:
+      description: "Get queue time estimations for all recycling stations."
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/StationListResponse"
+        500:
+          description: "500 response"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /{stationId}:
+    get:
+      description: "Get queue time estimation for specified recycling station."
+      produces:
+      - "application/json"
+      parameters:
+      - name: "stationId"
+        in: "path"
+        description: "Station identifier."
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/StationResponse"
+        404:
+          description: "404 response"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "500 response"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+definitions:
+  StationListResponse:
+    type: "array"
+    items:
+      $ref: "#/definitions/StationResponse"
+    description: List of all recycling stations (including available queue time estimations).
+  StationResponse:
+    type: "object"
+    properties:
+      station_id:
+        type: "integer"
+        example: 42
+      station_name:
+        type: "string"
+        example: "Haraldrud gjenbruksstasjon"
+      is_open:
+        type: "boolean"
+        example: true
+      queue:
+        type: "object"
+        properties:
+          is_full:
+            type: "boolean"
+            example: false
+          expected_time:
+            type: "number"
+            example: 0.333
+          min_time: 
+            type: "number"
+            example: 0.248
+          max_time:
+            type: "number"
+            example: 0.412
+          updated_at:
+            type: "string"
+            format: "date-time"
+            example: "2020-06-19T15:01:50+02:00"
+    description: "Station info with queue time estimation. The queue property is null if station is closed or prediction is unavailable (no data or too uncertain)."
+  ErrorResponse:
+    type: "object"
+    properties:
+      message:
+        type: "string"
+    description: "Error response format."
