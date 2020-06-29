@@ -22,7 +22,7 @@ class PredictionConfig(BaseModel):
     margin_of_error: float
     queue_full_certainty_threshold: float
     queue_not_full_certainty_threshold: float
-    outdated_after: int
+    outdated_after_minutes: int
 
     def __post_init__(self):
         for field in fields(self):
@@ -74,13 +74,13 @@ class QueuePrediction(BaseModel):
 
     @property
     def is_outdated(self) -> bool:
-        if not self.config.outdated_after:
+        if not self.config.outdated_after_minutes:
             return False
 
         ts_now = datetime.now().timestamp()
-        ts_diff_min = (ts_now - self.timestamp) / 60
+        ts_diff_minutes = (ts_now - self.timestamp) / 60
 
-        if ts_diff_min <= self.config.outdated_after:
+        if ts_diff_minutes <= self.config.outdated_after_minutes:
             return False
 
         return True

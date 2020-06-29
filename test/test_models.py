@@ -18,7 +18,7 @@ class TestPredictionConfig:
             "margin_of_error": 0.25,
             "queue_full_certainty_threshold": 0.9,
             "queue_not_full_certainty_threshold": 0.5,
-            "outdated_after": 15,
+            "outdated_after_minutes": 15,
         }
         prediction_config = PredictionConfig.from_dict(config)
 
@@ -31,7 +31,7 @@ class TestPredictionConfig:
                     "margin_of_error": 0.25,
                     "queue_full_certainty_threshold": 1.2,
                     "queue_not_full_certainty_threshold": 0.5,
-                    "outdated_after": 15,
+                    "outdated_after_minutes": 15,
                 }
             )
 
@@ -41,7 +41,7 @@ class TestPredictionConfig:
                     "margin_of_error": None,
                     "queue_full_certainty_threshold": 0.9,
                     "queue_not_full_certainty_threshold": 0.5,
-                    "outdated_after": 15,
+                    "outdated_after_minutes": 15,
                 }
             )
 
@@ -71,7 +71,7 @@ class TestQueuePrediction:
                         "margin_of_error": config[0],
                         "queue_full_certainty_threshold": config[1],
                         "queue_not_full_certainty_threshold": config[2],
-                        "outdated_after": 15,
+                        "outdated_after_minutes": 15,
                     }
                 ),
             )
@@ -84,7 +84,7 @@ class TestQueuePrediction:
                     "margin_of_error": config[0],
                     "queue_full_certainty_threshold": config[1],
                     "queue_not_full_certainty_threshold": config[2],
-                    "outdated_after": 15,
+                    "outdated_after_minutes": 15,
                 },
             }
 
@@ -105,7 +105,7 @@ class TestQueuePrediction:
             config=PredictionConfig.from_dict(test_config_data["prediction_config"]),
         )
 
-        for time_now, outdated_after, should_be_outdated in [
+        for time_now, outdated_after_minutes, should_be_outdated in [
             ("2020-06-01T13:05:00+01:00", 15, False),
             ("2020-06-01T13:30:00+01:00", 15, True),
             ("2020-06-01T14:05:00+02:00", 15, False),
@@ -117,7 +117,7 @@ class TestQueuePrediction:
             ("2020-06-01T14:10:00+02:00", 7, True),
         ]:
             with freeze_time(time_now):
-                prediction.config.outdated_after = outdated_after
+                prediction.config.outdated_after_minutes = outdated_after_minutes
                 assert prediction.is_outdated is should_be_outdated
 
     def test_invalid_config(self):
@@ -139,7 +139,7 @@ class TestQueuePrediction:
                             "margin_of_error": config[0],
                             "queue_full_certainty_threshold": config[1],
                             "queue_not_full_certainty_threshold": config[2],
-                            "outdated_after": 15,
+                            "outdated_after_minutes": 15,
                         }
                     ),
                 )

@@ -3,7 +3,7 @@ test_config_data = {
         "margin_of_error": 0.25,
         "queue_full_certainty_threshold": 0.9,
         "queue_not_full_certainty_threshold": 0.5,
-        "outdated_after": 15,
+        "outdated_after_minutes": 15,
     },
     "stations": {
         31: {
@@ -41,7 +41,7 @@ test_config_data = {
                 "margin_of_error": 0.3,
                 "queue_full_certainty_threshold": 0.9,
                 "queue_not_full_certainty_threshold": 0.5,
-                "outdated_after": 20,
+                "outdated_after_minutes": 20,
             },
         },
         43: {
