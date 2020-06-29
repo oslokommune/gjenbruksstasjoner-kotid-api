@@ -3,8 +3,18 @@ test_config_data = {
         "margin_of_error": 0.25,
         "queue_full_certainty_threshold": 0.9,
         "queue_not_full_certainty_threshold": 0.5,
+        "outdated_after": 15,
     },
     "stations": {
+        31: {
+            "active": True,
+            "station_name": "Haraldrud hageavfallsmottak",
+            "opening_hours": {
+                "default": {"open": "07:00", "closed": "21:00"},
+                "saturday": {"open": "07:00", "closed": "17:00"},
+                "sunday": None,
+            },
+        },
         41: {
             "active": True,
             "station_name": "Grønmo",
@@ -31,6 +41,7 @@ test_config_data = {
                 "margin_of_error": 0.3,
                 "queue_full_certainty_threshold": 0.9,
                 "queue_not_full_certainty_threshold": 0.5,
+                "outdated_after": 20,
             },
         },
         43: {
@@ -61,5 +72,11 @@ test_prediction_data = {
         "queue_full": 0.74,  # UNCERTAIN
         "expected_queue_time": 0.712,
         "timestamp": 1591012800.0,  # 2020-06-01 12:00:00
+    },
+    31: {
+        "station_id": 31,
+        "queue_full": 0.1,
+        "expected_queue_time": 0.5,
+        "timestamp": 1591005600.0,  # 2020-06-01 10:00:00 (OUTDATED)
     },
 }
