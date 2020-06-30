@@ -68,6 +68,9 @@ definitions:
       is_open:
         type: "boolean"
         example: true
+      prediction_enabled:
+        type: "boolean"
+        example: true
       queue:
         type: "object"
         properties:
