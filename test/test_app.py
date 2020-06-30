@@ -18,11 +18,9 @@ class TestApp:
         response_data = response.get_json()
 
         assert response.status_code == 200
-        assert [s["station_id"] for s in response_data] == [
-            sid
-            for sid, config in test_config_data["stations"].items()
-            if config["active"]
-        ]
+        assert set([s["station_id"] for s in response_data]) == set(
+            test_config_data["stations"].keys()
+        )
         for station in response_data:
             assert set(station) == set(station_fields)
 
@@ -39,6 +37,7 @@ class TestApp:
             "station_id": 41,
             "station_name": "Grønmo",
             "is_open": True,
+            "prediction_enabled": True,
             "queue": {
                 "expected_time": 0.5,
                 "is_full": False,
@@ -57,6 +56,7 @@ class TestApp:
             "station_id": 42,
             "station_name": "Haraldrud gjenbruksstasjon",
             "is_open": True,
+            "prediction_enabled": True,
             "queue": None,
         }
 
@@ -72,5 +72,4 @@ class TestApp:
 
         create_config_file(test_config_data)
 
-        request(43)
         request(999)

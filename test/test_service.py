@@ -38,6 +38,4 @@ class TestService:
 
         stations = service.get_all_stations()
 
-        assert len(stations) == len(
-            [s for s in test_config_data["stations"].values() if s["active"]]
-        )
+        assert len(stations) == len(test_config_data["stations"])

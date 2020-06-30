@@ -162,9 +162,9 @@ class TestStation:
 
         station_config = dict(test_config_data["stations"][42])
         station_config["station_id"] = 42
-        station_config.pop("active")
         station = Station(
             station_id=station_config["station_id"],
+            prediction_enabled=station_config["prediction_enabled"],
             prediction_config=PredictionConfig.from_dict(
                 station_config["prediction_config"]
             ),
@@ -187,12 +187,46 @@ class TestStation:
             "config": station_config["prediction_config"],
         }
 
-    def test_opning_hours(self):
+    @freeze_time("2020-06-16T08:55:00+02:00")
+    def test_prediction_disabled(self, mock_dynamodb):
+        table = create_predictions_table(
+            items=[
+                {
+                    "station_id": 42,
+                    "timestamp": datetime.timestamp(datetime.now()),
+                    "queue_full": 0.04,
+                    "expected_queue_time": 0.333,
+                }
+            ]
+        )
+
         station_config = dict(test_config_data["stations"][42])
         station_config["station_id"] = 42
-        station_config.pop("active")
         station = Station(
             station_id=station_config["station_id"],
+            prediction_enabled=False,
+            prediction_config=PredictionConfig.from_dict(
+                station_config["prediction_config"]
+            ),
+            station_name=station_config.get("station_name"),
+            opening_hours=station_config.get("opening_hours"),
+        )
+
+        station.queue_prediction = table.scan()["Items"][0]
+
+        assert station.is_open
+        assert station._queue_prediction is not None
+        assert not station._queue_prediction.is_uncertain_prediction
+        assert not station._queue_prediction.is_outdated
+        assert not station.prediction_enabled
+        assert station.queue_prediction is None
+
+    def test_opening_hours(self):
+        station_config = dict(test_config_data["stations"][42])
+        station_config["station_id"] = 42
+        station = Station(
+            station_id=station_config["station_id"],
+            prediction_enabled=station_config["prediction_enabled"],
             prediction_config=PredictionConfig.from_dict(
                 station_config["prediction_config"]
             ),
