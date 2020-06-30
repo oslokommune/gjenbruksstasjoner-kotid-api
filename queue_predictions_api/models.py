@@ -19,6 +19,7 @@ class BaseModel:
 
 @dataclass
 class PredictionConfig(BaseModel):
+    prediction_enabled: bool
     margin_of_error: float
     queue_full_certainty_threshold: float
     queue_not_full_certainty_threshold: float
@@ -89,7 +90,6 @@ class QueuePrediction(BaseModel):
 @dataclass
 class Station(BaseModel):
     station_id: int
-    prediction_enabled: bool
     prediction_config: PredictionConfig
     station_name: str = None
     opening_hours: dict = None
@@ -99,7 +99,7 @@ class Station(BaseModel):
     @property
     def queue_prediction(self) -> Optional[QueuePrediction]:
         if (
-            not self.prediction_enabled
+            not self.prediction_config.prediction_enabled
             or not self._queue_prediction
             or not self.is_open
         ):
