@@ -1,4 +1,5 @@
 from aws_xray_sdk.core import xray_recorder
+from freezegun import freeze_time
 
 from test.conftest import create_config_file, create_predictions_table
 from test.mockdata import test_config_data, test_prediction_data
@@ -25,6 +26,7 @@ class TestApp:
         for station in response_data:
             assert set(station) == set(station_fields)
 
+    @freeze_time("2020-06-01T13:10:00+02:00")
     def test_get_station(self, mock_client, mock_s3_config, mock_dynamodb):
         create_config_file(test_config_data)
         create_predictions_table(items=test_prediction_data.values())

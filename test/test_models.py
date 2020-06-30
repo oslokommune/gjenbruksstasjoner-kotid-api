@@ -18,6 +18,7 @@ class TestPredictionConfig:
             "margin_of_error": 0.25,
             "queue_full_certainty_threshold": 0.9,
             "queue_not_full_certainty_threshold": 0.5,
+            "outdated_after_minutes": 15,
         }
         prediction_config = PredictionConfig.from_dict(config)
 
@@ -30,6 +31,7 @@ class TestPredictionConfig:
                     "margin_of_error": 0.25,
                     "queue_full_certainty_threshold": 1.2,
                     "queue_not_full_certainty_threshold": 0.5,
+                    "outdated_after_minutes": 15,
                 }
             )
 
@@ -39,6 +41,7 @@ class TestPredictionConfig:
                     "margin_of_error": None,
                     "queue_full_certainty_threshold": 0.9,
                     "queue_not_full_certainty_threshold": 0.5,
+                    "outdated_after_minutes": 15,
                 }
             )
 
@@ -68,6 +71,7 @@ class TestQueuePrediction:
                         "margin_of_error": config[0],
                         "queue_full_certainty_threshold": config[1],
                         "queue_not_full_certainty_threshold": config[2],
+                        "outdated_after_minutes": 15,
                     }
                 ),
             )
@@ -80,6 +84,7 @@ class TestQueuePrediction:
                     "margin_of_error": config[0],
                     "queue_full_certainty_threshold": config[1],
                     "queue_not_full_certainty_threshold": config[2],
+                    "outdated_after_minutes": 15,
                 },
             }
 
@@ -88,6 +93,32 @@ class TestQueuePrediction:
             assert round(prediction.max_queue_time, 3) == round(expected[2], 3)
             assert prediction.is_full is expected[3]
             assert prediction.is_uncertain_prediction is expected[4]
+
+    def test_expiration(self):
+        prediction = QueuePrediction.from_dict(
+            {
+                "station_id": 123,
+                "queue_full": 0.1,
+                "expected_queue_time": 0.25,
+                "timestamp": 1591012800.0,  # 2020-06-01T12:00:00.000Z
+            },
+            config=PredictionConfig.from_dict(test_config_data["prediction_config"]),
+        )
+
+        for time_now, outdated_after_minutes, should_be_outdated in [
+            ("2020-06-01T13:05:00+01:00", 15, False),
+            ("2020-06-01T13:30:00+01:00", 15, True),
+            ("2020-06-01T14:05:00+02:00", 15, False),
+            ("2020-06-02T14:05:00+02:00", 15, True),
+            ("2020-06-01T14:15:00+02:00", 15, False),
+            ("2020-06-01T14:15:01+02:00", 15, True),
+            ("2020-06-01T14:10:00+02:00", None, False),
+            ("2020-06-01T14:05:00+02:00", 7, False),
+            ("2020-06-01T14:10:00+02:00", 7, True),
+        ]:
+            with freeze_time(time_now):
+                prediction.config.outdated_after_minutes = outdated_after_minutes
+                assert prediction.is_outdated is should_be_outdated
 
     def test_invalid_config(self):
         for values, config, expected in [
@@ -108,6 +139,7 @@ class TestQueuePrediction:
                             "margin_of_error": config[0],
                             "queue_full_certainty_threshold": config[1],
                             "queue_not_full_certainty_threshold": config[2],
+                            "outdated_after_minutes": 15,
                         }
                     ),
                 )

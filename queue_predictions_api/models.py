@@ -22,9 +22,12 @@ class PredictionConfig(BaseModel):
     margin_of_error: float
     queue_full_certainty_threshold: float
     queue_not_full_certainty_threshold: float
+    outdated_after_minutes: int
 
     def __post_init__(self):
         for field in fields(self):
+            if field.type is not float:
+                continue
             if not 0 <= getattr(self, field.name) <= 1:
                 raise ValueError()
 
@@ -69,6 +72,19 @@ class QueuePrediction(BaseModel):
         dt = datetime.fromtimestamp(self.timestamp, tz=pytz.timezone("Europe/Oslo"))
         return dt
 
+    @property
+    def is_outdated(self) -> bool:
+        if not self.config.outdated_after_minutes:
+            return False
+
+        ts_now = datetime.now().timestamp()
+        ts_diff_minutes = (ts_now - self.timestamp) / 60
+
+        if ts_diff_minutes <= self.config.outdated_after_minutes:
+            return False
+
+        return True
+
 
 @dataclass
 class Station(BaseModel):
@@ -86,6 +102,10 @@ class Station(BaseModel):
 
         if self._queue_prediction.is_uncertain_prediction:
             logger.warning(f"Prediction for station {self.station_id} is too uncertain")
+            return
+
+        if self._queue_prediction.is_outdated:
+            logger.warning(f"Prediction for station {self.station_id} is outdated")
             return
 
         return self._queue_prediction
