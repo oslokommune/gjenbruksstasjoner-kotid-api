@@ -27,17 +27,19 @@ class QueuePredictionService:
     def get_station(self, station_id: int) -> Optional[Station]:
         station_config = self.stations.get(str(station_id))
 
-        if not station_config or not station_config.get("active", False):
+        if not station_config:
             return None
 
         try:
             prediction_config = self.prediction_config.copy()
 
             if station_config.get("prediction_config"):
+                # Update defaults with station specific config
                 prediction_config.update(station_config["prediction_config"])
 
             station = Station(
                 station_id=station_id,
+                prediction_enabled=station_config.get("prediction_enabled", False),
                 prediction_config=PredictionConfig.from_dict(prediction_config),
                 station_name=station_config.get("station_name"),
                 opening_hours=station_config.get("opening_hours"),
@@ -48,7 +50,8 @@ class QueuePredictionService:
             return None
 
         # Update prediction data
-        station.queue_prediction = self._get_prediction_data(station.station_id)
+        if station.prediction_enabled:
+            station.queue_prediction = self._get_prediction_data(station.station_id)
 
         return station
 

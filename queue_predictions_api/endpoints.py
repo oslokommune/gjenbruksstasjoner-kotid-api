@@ -16,6 +16,7 @@ station_fields = {
     "station_id": fields.Integer,
     "station_name": fields.String,
     "is_open": fields.Boolean,
+    "prediction_enabled": fields.Boolean,
     "queue": fields.Nested(
         {
             "is_full": fields.Boolean,
