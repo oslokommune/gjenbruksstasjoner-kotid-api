@@ -49,7 +49,7 @@ class QueuePredictionService:
             return None
 
         # Update prediction data
-        if station.prediction_config.prediction_enabled:
+        if station.prediction_config.prediction_enabled and station.is_open:
             station.queue_prediction = self._get_prediction_data(station.station_id)
 
         return station
@@ -88,7 +88,6 @@ class QueuePredictionService:
                 os.environ["REG_CONFIG_BUCKET"], os.environ["REG_CONFIG_IDENTIFIER"]
             )
             config = json.loads(obj.get()["Body"].read())
-            print(config)
         except Exception as e:
             logger.error("Could not read remote configuration file")
             logger.exception(e)
