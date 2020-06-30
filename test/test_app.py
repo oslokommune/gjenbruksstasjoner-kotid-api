@@ -4,6 +4,7 @@ from freezegun import freeze_time
 from test.conftest import create_config_file, create_predictions_table
 from test.mockdata import test_config_data, test_prediction_data
 from queue_predictions_api.endpoints import station_fields
+from queue_predictions_api.service import QueuePredictionService
 
 
 xray_recorder.begin_segment("Test")
@@ -17,9 +18,11 @@ class TestApp:
         response = mock_client.get("/")
         response_data = response.get_json()
 
+        service = QueuePredictionService()
+
         assert response.status_code == 200
         assert set([s["station_id"] for s in response_data]) == set(
-            test_config_data["stations"].keys()
+            [s.station_id for s in service.get_all_stations()]
         )
         for station in response_data:
             assert set(station) == set(station_fields)
@@ -37,7 +40,7 @@ class TestApp:
             "station_id": 41,
             "station_name": "Grønmo",
             "is_open": True,
-            "prediction_enabled": True,
+            "queue_prediction_enabled": True,
             "queue": {
                 "expected_time": 0.5,
                 "is_full": False,
@@ -56,7 +59,7 @@ class TestApp:
             "station_id": 42,
             "station_name": "Haraldrud gjenbruksstasjon",
             "is_open": True,
-            "prediction_enabled": True,
+            "queue_prediction_enabled": True,
             "queue": None,
         }
 

@@ -15,6 +15,7 @@ from queue_predictions_api.models import (
 class TestPredictionConfig:
     def test_ok(self):
         config = {
+            "prediction_enabled": True,
             "margin_of_error": 0.25,
             "queue_full_certainty_threshold": 0.9,
             "queue_not_full_certainty_threshold": 0.5,
@@ -28,6 +29,7 @@ class TestPredictionConfig:
         with pytest.raises(ValueError):
             PredictionConfig.from_dict(
                 {
+                    "prediction_enabled": True,
                     "margin_of_error": 0.25,
                     "queue_full_certainty_threshold": 1.2,
                     "queue_not_full_certainty_threshold": 0.5,
@@ -38,6 +40,7 @@ class TestPredictionConfig:
         with pytest.raises(TypeError):
             PredictionConfig.from_dict(
                 {
+                    "prediction_enabled": True,
                     "margin_of_error": None,
                     "queue_full_certainty_threshold": 0.9,
                     "queue_not_full_certainty_threshold": 0.5,
@@ -68,6 +71,7 @@ class TestQueuePrediction:
                 },
                 config=PredictionConfig.from_dict(
                     {
+                        "prediction_enabled": True,
                         "margin_of_error": config[0],
                         "queue_full_certainty_threshold": config[1],
                         "queue_not_full_certainty_threshold": config[2],
@@ -81,6 +85,7 @@ class TestQueuePrediction:
                 "expected_queue_time": values[1],
                 "timestamp": 1592480589,
                 "config": {
+                    "prediction_enabled": True,
                     "margin_of_error": config[0],
                     "queue_full_certainty_threshold": config[1],
                     "queue_not_full_certainty_threshold": config[2],
@@ -136,6 +141,7 @@ class TestQueuePrediction:
                     },
                     config=PredictionConfig.from_dict(
                         {
+                            "prediction_enabled": True,
                             "margin_of_error": config[0],
                             "queue_full_certainty_threshold": config[1],
                             "queue_not_full_certainty_threshold": config[2],
@@ -164,7 +170,6 @@ class TestStation:
         station_config["station_id"] = 42
         station = Station(
             station_id=station_config["station_id"],
-            prediction_enabled=station_config["prediction_enabled"],
             prediction_config=PredictionConfig.from_dict(
                 station_config["prediction_config"]
             ),
@@ -202,9 +207,9 @@ class TestStation:
 
         station_config = dict(test_config_data["stations"][42])
         station_config["station_id"] = 42
+        station_config["prediction_config"]["prediction_enabled"] = False
         station = Station(
             station_id=station_config["station_id"],
-            prediction_enabled=False,
             prediction_config=PredictionConfig.from_dict(
                 station_config["prediction_config"]
             ),
@@ -218,7 +223,7 @@ class TestStation:
         assert station._queue_prediction is not None
         assert not station._queue_prediction.is_uncertain_prediction
         assert not station._queue_prediction.is_outdated
-        assert not station.prediction_enabled
+        assert not station.prediction_config.prediction_enabled
         assert station.queue_prediction is None
 
     def test_opening_hours(self):
@@ -226,7 +231,6 @@ class TestStation:
         station_config["station_id"] = 42
         station = Station(
             station_id=station_config["station_id"],
-            prediction_enabled=station_config["prediction_enabled"],
             prediction_config=PredictionConfig.from_dict(
                 station_config["prediction_config"]
             ),

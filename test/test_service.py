@@ -38,4 +38,4 @@ class TestService:
 
         stations = service.get_all_stations()
 
-        assert len(stations) == len(test_config_data["stations"])
+        assert len(stations) == 5

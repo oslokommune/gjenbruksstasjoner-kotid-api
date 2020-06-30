@@ -1,5 +1,6 @@
 test_config_data = {
     "prediction_config": {
+        "prediction_enabled": True,
         "margin_of_error": 0.25,
         "queue_full_certainty_threshold": 0.9,
         "queue_not_full_certainty_threshold": 0.5,
@@ -13,7 +14,6 @@ test_config_data = {
                 "saturday": {"open": "07:00", "closed": "17:00"},
                 "sunday": None,
             },
-            "prediction_enabled": True,
         },
         41: {
             "station_name": "Grønmo",
@@ -22,7 +22,6 @@ test_config_data = {
                 "saturday": {"open": "07:00", "closed": "17:00"},
                 "sunday": None,
             },
-            "prediction_enabled": True,
         },
         42: {
             "station_name": "Haraldrud gjenbruksstasjon",
@@ -36,8 +35,8 @@ test_config_data = {
                     "2020-06-17": {"open": "08:00", "closed": "12:00"},
                 },
             },
-            "prediction_enabled": True,
             "prediction_config": {
+                "prediction_enabled": True,
                 "margin_of_error": 0.3,
                 "queue_full_certainty_threshold": 0.9,
                 "queue_not_full_certainty_threshold": 0.5,
@@ -47,16 +46,10 @@ test_config_data = {
         43: {
             "station_name": "Smestad",
             "opening_hours": {},
-            "prediction_enabled": False,
-            "prediction_config": {},
+            "prediction_config": {"prediction_enabled": False},
         },
-        44: {
-            "station_name": "Heggvin",
-            "opening_hours": {},
-            "prediction_enabled": True,
-            "prediction_config": {},
-        },
-        45: {"prediction_enabled": True},
+        44: {"station_name": "Heggvin", "opening_hours": {}, "prediction_config": {}},
+        45: {},
     },
 }
 
