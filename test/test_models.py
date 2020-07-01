@@ -4,7 +4,7 @@ from dataclasses import asdict
 from freezegun import freeze_time
 
 from test.conftest import create_predictions_table
-from test.mockdata import test_config_data
+
 from queue_predictions_api.models import (
     PredictionConfig,
     QueuePrediction,
@@ -99,7 +99,7 @@ class TestQueuePrediction:
             assert prediction.is_full is expected[3]
             assert prediction.is_uncertain_prediction is expected[4]
 
-    def test_expiration(self):
+    def test_expiration(self, config_data):
         prediction = QueuePrediction.from_dict(
             {
                 "station_id": 123,
@@ -107,7 +107,7 @@ class TestQueuePrediction:
                 "expected_queue_time": 0.25,
                 "timestamp": 1591012800.0,  # 2020-06-01T12:00:00.000Z
             },
-            config=PredictionConfig.from_dict(test_config_data["prediction_config"]),
+            config=PredictionConfig.from_dict(config_data["prediction_config"]),
         )
 
         for time_now, outdated_after_minutes, should_be_outdated in [
@@ -153,7 +153,7 @@ class TestQueuePrediction:
 
 class TestStation:
     @freeze_time("2020-06-16T08:55:00+02:00")
-    def test_ok(self, mock_dynamodb):
+    def test_ok(self, mock_dynamodb, config_data):
         prediction_timestamp = datetime.timestamp(datetime.now())
         table = create_predictions_table(
             items=[
@@ -166,7 +166,7 @@ class TestStation:
             ]
         )
 
-        station_config = dict(test_config_data["stations"][42])
+        station_config = config_data["stations"][42]
         station_config["station_id"] = 42
         station = Station(
             station_id=station_config["station_id"],
@@ -193,7 +193,7 @@ class TestStation:
         }
 
     @freeze_time("2020-06-16T08:55:00+02:00")
-    def test_prediction_disabled(self, mock_dynamodb):
+    def test_prediction_disabled(self, mock_dynamodb, config_data):
         table = create_predictions_table(
             items=[
                 {
@@ -205,7 +205,7 @@ class TestStation:
             ]
         )
 
-        station_config = dict(test_config_data["stations"][42])
+        station_config = config_data["stations"][42]
         station_config["station_id"] = 42
         station_config["prediction_config"]["prediction_enabled"] = False
         station = Station(
@@ -226,8 +226,8 @@ class TestStation:
         assert not station.prediction_config.prediction_enabled
         assert station.queue_prediction is None
 
-    def test_opening_hours(self):
-        station_config = dict(test_config_data["stations"][42])
+    def test_opening_hours(self, config_data):
+        station_config = config_data["stations"][42]
         station_config["station_id"] = 42
         station = Station(
             station_id=station_config["station_id"],

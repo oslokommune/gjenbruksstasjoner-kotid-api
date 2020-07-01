@@ -5,6 +5,7 @@ import pytest
 import decimal
 from moto import mock_dynamodb2, mock_s3
 
+from test.mockdata import test_config_data, test_prediction_data
 from app import app as flask_app
 
 
@@ -71,3 +72,13 @@ def mock_s3_config():
 
     client = boto3.client("s3", region_name=aws_region)
     client.create_bucket(Bucket=bucket_name)
+
+
+@pytest.fixture(scope="function")
+def config_data():
+    return test_config_data
+
+
+@pytest.fixture(scope="function")
+def prediction_data():
+    return test_prediction_data
