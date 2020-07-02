@@ -19,6 +19,7 @@ class BaseModel:
 
 @dataclass
 class PredictionConfig(BaseModel):
+    prediction_enabled: bool
     margin_of_error: float
     queue_full_certainty_threshold: float
     queue_not_full_certainty_threshold: float
@@ -97,7 +98,11 @@ class Station(BaseModel):
 
     @property
     def queue_prediction(self) -> Optional[QueuePrediction]:
-        if not self._queue_prediction or not self.is_open:
+        if (
+            not self.prediction_config.prediction_enabled
+            or not self._queue_prediction
+            or not self.is_open
+        ):
             return
 
         if self._queue_prediction.is_uncertain_prediction:

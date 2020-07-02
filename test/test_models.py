@@ -4,7 +4,7 @@ from dataclasses import asdict
 from freezegun import freeze_time
 
 from test.conftest import create_predictions_table
-from test.mockdata import test_config_data
+
 from queue_predictions_api.models import (
     PredictionConfig,
     QueuePrediction,
@@ -15,6 +15,7 @@ from queue_predictions_api.models import (
 class TestPredictionConfig:
     def test_ok(self):
         config = {
+            "prediction_enabled": True,
             "margin_of_error": 0.25,
             "queue_full_certainty_threshold": 0.9,
             "queue_not_full_certainty_threshold": 0.5,
@@ -28,6 +29,7 @@ class TestPredictionConfig:
         with pytest.raises(ValueError):
             PredictionConfig.from_dict(
                 {
+                    "prediction_enabled": True,
                     "margin_of_error": 0.25,
                     "queue_full_certainty_threshold": 1.2,
                     "queue_not_full_certainty_threshold": 0.5,
@@ -38,6 +40,7 @@ class TestPredictionConfig:
         with pytest.raises(TypeError):
             PredictionConfig.from_dict(
                 {
+                    "prediction_enabled": True,
                     "margin_of_error": None,
                     "queue_full_certainty_threshold": 0.9,
                     "queue_not_full_certainty_threshold": 0.5,
@@ -68,6 +71,7 @@ class TestQueuePrediction:
                 },
                 config=PredictionConfig.from_dict(
                     {
+                        "prediction_enabled": True,
                         "margin_of_error": config[0],
                         "queue_full_certainty_threshold": config[1],
                         "queue_not_full_certainty_threshold": config[2],
@@ -81,6 +85,7 @@ class TestQueuePrediction:
                 "expected_queue_time": values[1],
                 "timestamp": 1592480589,
                 "config": {
+                    "prediction_enabled": True,
                     "margin_of_error": config[0],
                     "queue_full_certainty_threshold": config[1],
                     "queue_not_full_certainty_threshold": config[2],
@@ -94,7 +99,7 @@ class TestQueuePrediction:
             assert prediction.is_full is expected[3]
             assert prediction.is_uncertain_prediction is expected[4]
 
-    def test_expiration(self):
+    def test_expiration(self, config_data):
         prediction = QueuePrediction.from_dict(
             {
                 "station_id": 123,
@@ -102,7 +107,7 @@ class TestQueuePrediction:
                 "expected_queue_time": 0.25,
                 "timestamp": 1591012800.0,  # 2020-06-01T12:00:00.000Z
             },
-            config=PredictionConfig.from_dict(test_config_data["prediction_config"]),
+            config=PredictionConfig.from_dict(config_data["prediction_config"]),
         )
 
         for time_now, outdated_after_minutes, should_be_outdated in [
@@ -136,6 +141,7 @@ class TestQueuePrediction:
                     },
                     config=PredictionConfig.from_dict(
                         {
+                            "prediction_enabled": True,
                             "margin_of_error": config[0],
                             "queue_full_certainty_threshold": config[1],
                             "queue_not_full_certainty_threshold": config[2],
@@ -147,7 +153,7 @@ class TestQueuePrediction:
 
 class TestStation:
     @freeze_time("2020-06-16T08:55:00+02:00")
-    def test_ok(self, mock_dynamodb):
+    def test_ok(self, mock_dynamodb, config_data):
         prediction_timestamp = datetime.timestamp(datetime.now())
         table = create_predictions_table(
             items=[
@@ -160,9 +166,8 @@ class TestStation:
             ]
         )
 
-        station_config = dict(test_config_data["stations"][42])
+        station_config = config_data["stations"][42]
         station_config["station_id"] = 42
-        station_config.pop("active")
         station = Station(
             station_id=station_config["station_id"],
             prediction_config=PredictionConfig.from_dict(
@@ -187,10 +192,43 @@ class TestStation:
             "config": station_config["prediction_config"],
         }
 
-    def test_opning_hours(self):
-        station_config = dict(test_config_data["stations"][42])
+    @freeze_time("2020-06-16T08:55:00+02:00")
+    def test_prediction_disabled(self, mock_dynamodb, config_data):
+        table = create_predictions_table(
+            items=[
+                {
+                    "station_id": 42,
+                    "timestamp": datetime.timestamp(datetime.now()),
+                    "queue_full": 0.04,
+                    "expected_queue_time": 0.333,
+                }
+            ]
+        )
+
+        station_config = config_data["stations"][42]
         station_config["station_id"] = 42
-        station_config.pop("active")
+        station_config["prediction_config"]["prediction_enabled"] = False
+        station = Station(
+            station_id=station_config["station_id"],
+            prediction_config=PredictionConfig.from_dict(
+                station_config["prediction_config"]
+            ),
+            station_name=station_config.get("station_name"),
+            opening_hours=station_config.get("opening_hours"),
+        )
+
+        station.queue_prediction = table.scan()["Items"][0]
+
+        assert station.is_open
+        assert station._queue_prediction is not None
+        assert not station._queue_prediction.is_uncertain_prediction
+        assert not station._queue_prediction.is_outdated
+        assert not station.prediction_config.prediction_enabled
+        assert station.queue_prediction is None
+
+    def test_opening_hours(self, config_data):
+        station_config = config_data["stations"][42]
+        station_config["station_id"] = 42
         station = Station(
             station_id=station_config["station_id"],
             prediction_config=PredictionConfig.from_dict(
