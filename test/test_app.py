@@ -43,6 +43,7 @@ class TestApp:
             "station_id": 41,
             "station_name": "Grønmo",
             "is_open": True,
+            "show_station": True,
             "queue_prediction_enabled": True,
             "queue": {
                 "expected_time": 0.5,
@@ -62,9 +63,17 @@ class TestApp:
             "station_id": 42,
             "station_name": "Haraldrud gjenbruksstasjon",
             "is_open": True,
+            "show_station": True,
             "queue_prediction_enabled": True,
             "queue": None,
         }
+
+        response = mock_client.get("/43")
+        response_data = response.get_json()
+
+        assert response.status_code == 200
+        assert response_data["station_id"] == 43
+        assert not response_data["show_station"]
 
     def test_get_station_no_data(self, mock_client, mock_s3_config, config_data):
         def request(station_id):

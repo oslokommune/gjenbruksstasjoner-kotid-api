@@ -119,11 +119,13 @@ def config_data():
                     "queue_not_full_certainty_threshold": 0.5,
                     "outdated_after_minutes": 20,
                 },
+                "show_station": True,
             },
             43: {
                 "station_name": "Smestad",
                 "opening_hours": {},
                 "prediction_config": {"prediction_enabled": False},
+                "show_station": False,
             },
             44: {
                 "station_name": "Heggvin",

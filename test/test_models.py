@@ -175,6 +175,7 @@ class TestStation:
             ),
             station_name=station_config.get("station_name"),
             opening_hours=station_config.get("opening_hours"),
+            show_station=station_config.get("show_station"),
         )
 
         station_asdict = asdict(station)
@@ -182,6 +183,7 @@ class TestStation:
 
         assert station_asdict == station_config
         assert station.is_open
+        assert station.show_station
 
         station.queue_prediction = table.scan()["Items"][0]
 

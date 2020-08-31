@@ -42,6 +42,7 @@ class QueuePredictionService:
                 prediction_config=PredictionConfig.from_dict(prediction_config),
                 station_name=station_config.get("station_name"),
                 opening_hours=station_config.get("opening_hours"),
+                show_station=station_config.get("show_station", True),
             )
         except Exception as e:
             logger.error("Could not create station object from provided configuration")

@@ -93,6 +93,7 @@ class Station(BaseModel):
     prediction_config: PredictionConfig
     station_name: str = None
     opening_hours: dict = None
+    show_station: bool = True
 
     _queue_prediction: QueuePrediction = None
 
