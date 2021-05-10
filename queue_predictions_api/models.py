@@ -12,7 +12,7 @@ logger = logging.getLogger("queue_predictions_api.models")
 class BaseModel:
     @classmethod
     def from_dict(cls, data, **kwargs):
-        """ Initialize model instance from dict. Ignores undefined attributes. """
+        """Initialize model instance from dict. Ignores undefined attributes."""
         field_names = set(f.name for f in fields(cls) if f.init is True)
         return cls(**{k: v for k, v in data.items() if k in field_names}, **kwargs)
 
@@ -48,12 +48,12 @@ class QueuePrediction(BaseModel):
 
     @property
     def is_uncertain_prediction(self) -> bool:
-        """ Determine prediction certainty from configured thresholds. """
+        """Determine prediction certainty from configured thresholds."""
         return self.is_full is None
 
     @property
     def is_full(self) -> Optional[bool]:
-        """ Determine queue full probability. Returns None if uncertain. """
+        """Determine queue full probability. Returns None if uncertain."""
         if self.queue_full > self.config.queue_full_certainty_threshold:
             return True
 
