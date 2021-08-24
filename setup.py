@@ -18,5 +18,10 @@ setup(
     url="https://github.oslo.kommune.no/origo-dataplatform/gjenbruksstasjoner-kotid-api",
     py_modules=["app"],
     packages=find_packages(),
-    install_requires=["boto3", "flask==1.1.2", "flask-restful==0.3.8"],
+    install_requires=[
+        "boto3",
+        "flask==1.1.2",
+        "flask-restful==0.3.8",
+        "werkzeug==1.0.1",
+    ],
 )
