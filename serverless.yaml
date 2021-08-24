@@ -1,8 +1,8 @@
-frameworkVersion: ">=2.10.0 <3.0.0"
+frameworkVersion: ">=2.55.0 <3.0.0"
 service: gjenbruksstasjoner-kotid-api
 provider:
   name: aws
-  runtime: python3.7
+  runtime: python3.9
   memorySize: 128
   region: ${opt:region, 'eu-west-1'}
   stage: ${opt:stage, 'dev'}
@@ -10,9 +10,9 @@ provider:
     name: ${self:custom.deploymentBucket.${self:provider.stage}, self:custom.deploymentBucket.dev}
     serverSideEncryption: AES256
   deploymentPrefix: deploy
-  rolePermissionsBoundary: "arn:aws:iam::#{AWS::AccountId}:policy/oslokommune/oslokommune-boundary"
+  rolePermissionsBoundary: "arn:aws:iam::${aws:accountId}:policy/oslokommune/oslokommune-boundary"
   iamManagedPolicies:
-    - 'arn:aws:iam::#{AWS::AccountId}:policy/gjenbruksstasjoner-kotid-api-policy'
+    - 'arn:aws:iam::${aws:accountId}:policy/gjenbruksstasjoner-kotid-api-policy'
     - 'arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess'
   tags:
     GIT_REV: ${git:branch}:${git:sha1}
@@ -43,7 +43,6 @@ plugins:
   - serverless-wsgi
   - serverless-python-requirements
   - serverless-plugin-git-variables
-  - serverless-pseudo-parameters
   - serverless-es-logs
 
 resources:
